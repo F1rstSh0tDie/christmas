@@ -9,7 +9,7 @@
 :root{
   --bg:#05060b;
   --gold:rgba(255,220,150,.95);
-  --pink: #e64a8d;
+  --pink:#e64a8d;
   --txt:#ffffff;
 }
 *{box-sizing:border-box}
@@ -121,7 +121,6 @@ p{margin:10px 0;opacity:.95;line-height:1.5}
   50%{transform:translateY(-12px)}
 }
 
-/* BOX BASE */
 .box{
   position:absolute;
   bottom:0;
@@ -132,7 +131,6 @@ p{margin:10px 0;opacity:.95;line-height:1.5}
   z-index: 4;
 }
 
-/* LID */
 .lid{
   position:absolute;
   top:0;
@@ -151,26 +149,27 @@ p{margin:10px 0;opacity:.95;line-height:1.5}
   transform: rotate(-70deg) translate(-20px, -30px);
 }
 
-/* 🎀 RIBBONS (Shared Styles) */
-.ribbon-v, .ribbon-h {
+/* 🎀 RIBBONS */
+.ribbon-v {
   position: absolute;
   background: var(--pink);
   z-index: 7;
-}
-.ribbon-v {
   width: 20px;
   height: 100%;
   left: 50%;
   transform: translateX(-50%);
 }
 .ribbon-h {
+  position: absolute;
+  background: var(--pink);
+  z-index: 7;
   width: 100%;
   height: 15px;
   top: 50%;
   transform: translateY(-50%);
 }
 
-/* ✨ INNER GLOW (The light inside) */
+/* ✨ INNER GLOW */
 .inner-glow{
   position:absolute;
   left:10%;
@@ -180,7 +179,7 @@ p{margin:10px 0;opacity:.95;line-height:1.5}
   background: radial-gradient(circle, #fff5d2 0%, #ffdc96 50%, transparent 80%);
   opacity:0;
   filter: blur(15px);
-  z-index: 5; /* Between box and lid */
+  z-index: 5;
   transition: opacity 0.5s;
 }
 
@@ -233,7 +232,7 @@ p{margin:10px 0;opacity:.95;line-height:1.5}
 }
 .small{margin-top:18px;font-size:14px;opacity:.85}
 
-/* MAGIC RING */
+/* ✨ MAGIC RING */
 .magic-ring{
   --ring-speed: 6s;
   --inset-min: -40px;
@@ -246,8 +245,13 @@ p{margin:10px 0;opacity:.95;line-height:1.5}
   opacity:0;
   pointer-events:none;
 }
-.magic-ring.active{ opacity:1; animation: ringRotate var(--ring-speed) linear infinite, ringPulse 2.8s ease-in-out infinite; }
-.magic-ring.finale{ animation: ringFinale 0.9s ease-out forwards; }
+.magic-ring.active{ 
+  opacity:1; 
+  animation: ringRotate var(--ring-speed) linear infinite, ringPulse 2.8s ease-in-out infinite; 
+}
+.magic-ring.finale{ 
+  animation: ringFinale 0.9s ease-out forwards; 
+}
 
 @keyframes ringRotate{ from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
 @keyframes ringPulse{ 0%,100%{ inset: var(--inset-min); } 50%{ inset: var(--inset-max); } }
@@ -298,7 +302,7 @@ p{margin:10px 0;opacity:.95;line-height:1.5}
 
 <div class="section" id="reveal">
   <div class="gifts">
-    <div class="giftItem"><strong>🎭 Theater oder Musical</strong><br>Du darfst aussuchen welches – und wir machen daraus unseren Abend (evtl. mit Übernachtung 😉).</div>
+    <div class="giftItem"><strong>🎭 Theater oder Musical</strong><br>Du darfst aussuchen welches – und wir machen daraus unseren Abend.</div>
     <div class="giftItem"><strong>🎸 Deine Gitarre</strong><br>Neu gestimmt, neue Saiten – und wenn du willst: richtig schön machen lassen, damit du wieder Lust hast zu spielen.</div>
   </div>
   <p class="small">Ich liebe dich. ❤️</p>
@@ -321,7 +325,7 @@ const reveal = document.getElementById('reveal');
 const magicBg = document.getElementById('magicBg');
 const magicRing = document.getElementById('magicRing');
 
-/* SNOW LOGIC */
+/* SNOW */
 const snowC = document.getElementById('snow');
 const sCtx = snowC.getContext('2d');
 let w,h,snow;
@@ -346,20 +350,33 @@ function snowDraw(){
 }
 snowDraw();
 
-/* MAIN LOGIC */
+/* TICK LOGIC MIT COUNTDOWN & RING-ANIMATION */
 let started=false;
 function tick(){
   if(!started) return;
   const t = music.currentTime || 0;
+  
   if(t < REVEAL_AT){
-    status.textContent = `✨ Magie entsteht… (s)`;
+    // Countdown Text
+    status.textContent = `✨ Magie entsteht… (${Math.ceil(REVEAL_AT - t)}s)`;
+    
+    // Fortschritt berechnen (0 bis 1)
     const p = Math.max(0, Math.min(1, t / REVEAL_AT));
+    
+    // Ring wird schneller (6s -> 1.2s Rotation)
     const speed = 6 - (4.8 * (p * p));
-    magicRing.style.setProperty('--ring-speed', `s`);
+    magicRing.style.setProperty('--ring-speed', `${speed}s`);
+    
+    // Ring wächst leicht
     magicRing.style.setProperty('--inset-min', `${-40 - (20*p)}px`);
     magicRing.style.setProperty('--inset-max', `${-55 - (30*p)}px`);
-    magicRing.style.setProperty('--ring-width', `px`);
+    
+    // Ring wird dicker (Stärke nimmt zu)
+    magicRing.style.setProperty('--ring-width', `${2.5 + (5*p)}px`);
+    
+    requestAnimationFrame(tick);
   } else {
+    // FINALE
     magicBg.classList.remove('active');
     magicRing.classList.remove('active');
     magicRing.classList.add('finale');
@@ -367,7 +384,6 @@ function tick(){
     reveal.classList.add('show');
     status.textContent="🎁 Überraschung geöffnet";
   }
-  requestAnimationFrame(tick);
 }
 
 btn.addEventListener('click', async ()=>{
